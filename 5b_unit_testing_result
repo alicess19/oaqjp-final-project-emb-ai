@@ -1,0 +1,16 @@
+$ python3 -m unittest -v test_emotion_detection.py
+test_anger (test_emotion_detection.TestEmotionDetector.test_anger)
+Test anger detection. ... ok
+test_disgust (test_emotion_detection.TestEmotionDetector.test_disgust)
+Test disgust detection. ... ok
+test_fear (test_emotion_detection.TestEmotionDetector.test_fear)
+Test fear detection. ... ok
+test_joy (test_emotion_detection.TestEmotionDetector.test_joy)
+Test joy detection. ... ok
+test_sadness (test_emotion_detection.TestEmotionDetector.test_sadness)
+Test sadness detection. ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+OK
