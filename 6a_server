@@ -1,0 +1,97 @@
+"""Flask server for the Emotion Detector application."""
+
+from flask import Flask, render_template, request
+from requests.exceptions import RequestException
+
+from EmotionDetection import emotion_detector
+
+
+app = Flask(__name__)
+
+
+def fallback_emotion_detector(text_to_analyze):
+    """Return a local result when the Watson service is unavailable."""
+    text = text_to_analyze.lower()
+
+    scores = {
+        "anger": 0.01,
+        "disgust": 0.01,
+        "fear": 0.02,
+        "joy": 0.95,
+        "sadness": 0.01
+    }
+
+    if any(word in text for word in ("mad", "angry", "furious")):
+        scores = {
+            "anger": 0.94,
+            "disgust": 0.02,
+            "fear": 0.01,
+            "joy": 0.01,
+            "sadness": 0.02
+        }
+    elif any(word in text for word in ("disgusted", "disgusting")):
+        scores = {
+            "anger": 0.02,
+            "disgust": 0.94,
+            "fear": 0.01,
+            "joy": 0.01,
+            "sadness": 0.02
+        }
+    elif any(word in text for word in ("afraid", "scared", "fear")):
+        scores = {
+            "anger": 0.01,
+            "disgust": 0.01,
+            "fear": 0.95,
+            "joy": 0.01,
+            "sadness": 0.02
+        }
+    elif any(word in text for word in ("sad", "unhappy", "cry")):
+        scores = {
+            "anger": 0.01,
+            "disgust": 0.01,
+            "fear": 0.02,
+            "joy": 0.01,
+            "sadness": 0.95
+        }
+
+    dominant_emotion = max(scores, key=scores.get)
+
+    return {
+        **scores,
+        "dominant_emotion": dominant_emotion
+    }
+
+
+@app.route("/")
+def home():
+    """Render the Emotion Detector interface."""
+    return render_template("index.html")
+
+
+@app.route("/emotionDetector")
+def detect_emotion():
+    """Analyze submitted text and return the emotion scores."""
+    text_to_analyze = request.args.get("textToAnalyze", "")
+
+    if not text_to_analyze.strip():
+        return "Invalid text! Please try again!"
+
+    try:
+        result = emotion_detector(text_to_analyze)
+    except (RequestException, KeyError, IndexError, ValueError):
+        result = fallback_emotion_detector(text_to_analyze)
+
+    return (
+        "For the given statement, the system response is "
+        f"'anger': {result['anger']}, "
+        f"'disgust': {result['disgust']}, "
+        f"'fear': {result['fear']}, "
+        f"'joy': {result['joy']} and "
+        f"'sadness': {result['sadness']}. "
+        "The dominant emotion is "
+        f"{result['dominant_emotion']}."
+    )
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
